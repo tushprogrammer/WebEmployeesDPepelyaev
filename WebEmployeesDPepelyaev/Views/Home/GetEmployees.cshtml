@@ -1,0 +1,90 @@
+﻿@using WebEmployeesDPepelyaev.Entitys;
+@model GetEmployeesModel
+<h3>Выберете вариант сортировки</h3>
+<div class="selects">
+    <select asp-items= "Model.Companies" onchange="SelectCompanies(this)">
+        <option value="">Выберете компанию</option>
+    </select>
+    <select asp-items="Model.Departments" onchange="SelectDepartments(this)">
+        <option value="">Выберете Департамент</option>
+    </select>
+    <a asp-action="GetEmployees" asp-controller="Home">Сброс фильтров</a>
+</div>
+<table class="table-employee">
+    <thead class="thead-light">
+        <tr>
+            <th style="width: 5%;">Id</th>
+            <th style="width: 10%;">Имя</th>
+            <th style="width: 15%;">Фамилия </th>
+            <th style="width: 15%;">Номер телефона</th>
+            <th style="width: 5%;">Id компании</th>
+            <th style="width: 5%;">Тип паспорта</th>
+            <th style="width: 10%;">Номер паспорта</th>
+            <th style="width: 10%;">Название департамента</th>
+            <th style="width: 15%;">Телефон департамента</th>
+            <th style="width: 10%;">Дополнительно</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Employee item in Model.Employees)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Name</td>
+                <td>@item.Surname</td>
+                <td>@item.Phone</td>
+                <td>@item.CompanyId</td>
+                <td>@item.Passport.Type</td>
+                <td>@item.Passport.Number</td>
+                <td>@item.Department.Name</td>
+                <td>@item.Department.Phone</td>
+                <td>
+                    <a asp-action="RemoveEmployee" asp-route-id="@item.Id" asp-controller="Home">Удалить</a> |
+                    <a asp-action="EditEmployee" asp-route-id="@item.Id" asp-controller="Home">Редактировать</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@section Scripts
+    {
+    <script>
+        function SelectCompanies(selectObject) {
+            window.location.replace("/Home/GetEmployeesCompany?companyId=" + selectObject.value);
+        }
+        function SelectDepartments(selectObject) {
+            window.location.replace("/Home/GetEmployeesDepartment?departmentId=" + selectObject.value);
+        }
+    </script>
+}
+<style>
+    .table-employee {
+        table-layout: fixed;
+        /* width: 100%; */
+        margin-bottom: 20px;
+        border: 15px solid #F2F8F8;
+        /* border-top: 5px solid #F2F8F8; */
+        border-collapse: collapse;
+    }
+
+        .table-employee td {
+        padding: 10px;
+        border: none;
+        border-bottom: 5px solid #F2F8F8;
+        text-align: center;
+    }
+
+        .table-employee th {
+        font-size: 11px;
+        text-align: center;
+        font-weight: bold;
+        padding: 5px;
+        background: #F2F8F8;
+        border: none;
+        border-bottom: 5px solid #F2F8F8;
+    }
+
+        .table-employee tr {
+        margin: 5px;
+    }
+</style>
