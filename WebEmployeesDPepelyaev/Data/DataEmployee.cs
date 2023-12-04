@@ -153,7 +153,7 @@ namespace WebEmployeesDPepelyaev.Data
                     editTransaction.Rollback();
                 }
             }
-
+            _dbConnection.Close();
             //обновление сотрудника по частям (изменения должно быть только тех полей, которые указаны в запросе)
             //Employee oldEmployee = GetEmployee(model.Id);
             //using (var editTransaction = _dbConnection.BeginTransaction())
