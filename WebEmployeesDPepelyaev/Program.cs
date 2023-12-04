@@ -8,7 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<IDbConnection>(provider =>
     new SqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddTransient<IDataEmployee, DataEmployee>();
+builder.Services.AddTransient<IDataWork ,DataWork>();
+builder.Services.AddTransient<CompanyRepository>();
+builder.Services.AddTransient<DepartmentRepository>();
+builder.Services.AddTransient<EmployeeRepository>();
+builder.Services.AddTransient<PassportRepository>();
+builder.Services.AddTransient<PassportTypeRepository>();
 
 var app = builder.Build();
 

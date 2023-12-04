@@ -9,11 +9,11 @@ namespace WebEmployeesDPepelyaev.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IDataEmployee dataEmployee;
+        private readonly IDataWork dataWork;
 
-        public HomeController(IDataEmployee data)
+        public HomeController(IDataWork data)
         {
-            dataEmployee = data;
+            dataWork = data;
         }
 
         public IActionResult Index()
@@ -21,149 +21,76 @@ namespace WebEmployeesDPepelyaev.Controllers
             return View();
         }
         
-        //страница добавления нового сотрудника
-        public IActionResult AddEmployee()
+        public async Task<IActionResult> AddEmployee()
         {
-            //передача департаментов, типов паспортов и компаний для выпадающих списков
-            EmployeeModel model = GetEmployeeModel();
+            EmployeeModel model = await dataWork.GetEmployeeModel();
             return View(model);
         }
-        //метод обработки данных со страницы
         [HttpPost]
-        public IActionResult AddNewEmployeeMethod(EmployeeModel model)
+        public async Task<IActionResult> AddNewEmployeeMethod(EmployeeModel model)
         {
-            //проверка на валидность
             if (ModelState.IsValid)
             {
-                //добавление сущности в бд
-                int id = dataEmployee.AddNewEmployee(model);
+                int id = await dataWork.AddNewEmployee(model);
                 //сохранение id для отображения в виде всплывающего уведомления на следующей странице
                 TempData["newEmployeeId"] = id;
             }
             else
             {
-                //вывод сообщения об ошибке валидации
                 ModelState.AddModelError("", "Заполните все обязательные поля");
-                EmployeeModel baseModel = GetEmployeeModel();
-                model.Departments = baseModel.Departments;
-                model.Companies = baseModel.Companies;
-                model.Passports = baseModel.Passports;
-                return View("AddEmployee", model); //повторная попытка
+                await dataWork.GetEmployeeModel(model);                
+                return View("AddEmployee", model); 
             }
-            //после успешного добавления, возврат на главную страницу
             return RedirectToAction("Index");
         }
-        //страница со списком сотрудников
-        public IActionResult GetEmployees()
+        //страница со списком всех сотрудников
+        public async Task<IActionResult> GetEmployees()
         {
-            //данные для фильтров
-            IEnumerable<Company> companies = dataEmployee.GetCompanies();
-            SelectList selectListCompanies = new SelectList(companies, "Id", "Name");
-            IEnumerable<Department> departments = dataEmployee.GetDepartments();
-            SelectList selectListDepartments = new SelectList(departments, "Id", "Name");
-
-            GetEmployeesModel model = new GetEmployeesModel()
-            {
-                Companies = selectListCompanies,
-                Departments = selectListDepartments,
-                Employees = dataEmployee.GetAllEmployees()
-            };
-            //вывод всех сотрудников 
+            GetEmployeesModel model = await dataWork.GetEmployeesModel();
             return View(model);
         }
         //страница со списком сотрудников с фильтром по компании
-        public IActionResult GetEmployeesCompany(int companyId)
+        public async Task<IActionResult> GetEmployeesCompany(int companyId)
         {
-            IEnumerable<Company> companies = dataEmployee.GetCompanies();
-            SelectList selectListCompanies = new SelectList(companies, "Id", "Name");
-            IEnumerable<Department> departments = dataEmployee.GetDepartments();
-            SelectList selectListDepartments = new SelectList(departments, "Id", "Name");
-
-            GetEmployeesModel model = new GetEmployeesModel()
-            {
-                Companies = selectListCompanies,
-                Departments = selectListDepartments,
-                Employees = dataEmployee.GetAllEmployees().Where(i => i.CompanyId == companyId),
-            };
-            //вывод сотрудников из выбранной компании 
+            GetEmployeesModel model = await dataWork.GetEmployeesModelCompany(companyId);
             return View("GetEmployees", model);
         }
         //страница со списком сотрудников с фильтром по департаменту
-        public IActionResult GetEmployeesDepartment(int departmentId)
+        public async Task<IActionResult> GetEmployeesDepartment(int departmentId)
         {
-            IEnumerable<Company> companies = dataEmployee.GetCompanies();
-            SelectList selectListCompanies = new SelectList(companies, "Id", "Name");
-            IEnumerable<Department> departments = dataEmployee.GetDepartments();
-            SelectList selectListDepartments = new SelectList(departments, "Id", "Name");
-
-            GetEmployeesModel model = new GetEmployeesModel()
-            {
-                Companies = selectListCompanies,
-                Departments = selectListDepartments,
-                Employees = dataEmployee.GetAllEmployees().Where(i => i.DepartmentId == departmentId),
-            };
-            //вывод сотрудников из выбранного департамента 
+            GetEmployeesModel model = await dataWork.GetEmployeesModelDepartment(departmentId);
             return View("GetEmployees", model);
         }
         //страница изменения данных сотрудника
-        public IActionResult EditEmployee(int id)
+        public async Task<IActionResult> EditEmployee(int id)
         {
-            Employee employeeNow = dataEmployee.GetEmployee(id);
-            EmployeeModel model = GetEmployeeModel();
-            model.Id = id;
-            model.Name = employeeNow.Name;
-            model.Surname = employeeNow.Surname;
-            model.Phone = employeeNow.Phone;
-            model.CompanyId = employeeNow.CompanyId.ToString();
-            model.DepartmentId = employeeNow.DepartmentId.ToString();
-            model.PassportType = employeeNow.Passport.Type;
-            model.PassportNumber = employeeNow.Passport.Number;
+            EmployeeModel model = await dataWork.GetEmployeeModel(id);
             return View(model);
         }
         [HttpPost]
         //метод обработки данных со страницы изменения
-        public IActionResult EditEmployeeMethod(EmployeeModel model)
+        public async Task<IActionResult> EditEmployeeMethod(EmployeeModel model)
         {
-            //проверка на валидность
             if (ModelState.IsValid)
             {
-                //изменение данных в бд
-                dataEmployee.UpdateEmployee(model);
+                await dataWork.UpdateEmployee(model);
             }
             else
             {
                 ModelState.AddModelError("", "Заполните все обязательные поля");
-                EmployeeModel baseModel = GetEmployeeModel();
-                model.Departments = baseModel.Departments;
-                model.Companies = baseModel.Companies;
-                model.Passports = baseModel.Passports;
-                return View("AddEmployee", model); //повторная попытка
+                await dataWork.GetEmployeeModel(model);
+                return View("AddEmployee", model);
             }
-
+            //после изменения вывод всех сотрудников
             return RedirectToAction("GetEmployees");
         }
-        //метод обработки запроса на удаление
+        
         public IActionResult RemoveEmployee(int id)
         {
-            dataEmployee.RemoveEmployee(id);
+            dataWork.RemoveEmployee(id);
             var r = Request.Headers["Referer"].ToString();
             return Redirect(r);
         }
-        //метод для формирования модели сотрудников для добавления/изменения
-        private EmployeeModel GetEmployeeModel()
-        {
-            IEnumerable<Company> companies = dataEmployee.GetCompanies();
-            SelectList selectListCompanies = new SelectList(companies, "Id", "Name");
-            IEnumerable<Department> departments = dataEmployee.GetDepartments();
-            SelectList selectListDepartments = new SelectList(departments, "Id", "Name");
-            IEnumerable<PassportType> passportTypes = dataEmployee.GetTypesPassports();
-            SelectList selectListPassportTypes = new SelectList(passportTypes, "Type", "Description");
-            return new EmployeeModel()
-            {
-                Departments = selectListDepartments,
-                Passports = selectListPassportTypes,
-                Companies = selectListCompanies
-            };
-        }
+        
     }
 }
