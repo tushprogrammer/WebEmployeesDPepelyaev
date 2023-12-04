@@ -28,8 +28,6 @@ namespace WebEmployeesDPepelyaev.Data
         }
         public IEnumerable<Employee> GetAllEmployees()
         {
-            //var empl = _dbConnection.Query<Employee>("SELECT Id, Name, Surname, Phone, CompanyId, PassportId, DepartmentId FROM Employees");
-            //var something = _dbConnection.Query(sql);
             var sql = @"
                 SELECT e.Id, e.Name, e.Surname, e.Phone, e.CompanyId, e.PassportId, e.DepartmentId,
                        p.Id, p.Type, p.Number, 
@@ -108,13 +106,13 @@ namespace WebEmployeesDPepelyaev.Data
         {
             //изменения данных представлены в двух вариантах из-за расплывчатого описания
             //изменение сотрудника по id целиком
-            Passport editPassport = new Passport()
+            Passport editPassport = new()
             {
                 Id = model.Id,
                 Type = model.PassportType,
                 Number = model.PassportNumber
             };
-            Employee editEmployee = new Employee
+            Employee editEmployee = new()
             {
                 Id = model.Id,
                 Name = model.Name,
@@ -134,7 +132,7 @@ namespace WebEmployeesDPepelyaev.Data
                     DepartmentId = @DepartmentId 
                 WHERE id = @Id";
             string sqlPassport = @"UPDATE Passports 
-                Set
+                SET
                     Type = @Type,
                     Number = @Number
                 WHERE Id = @Id";
@@ -153,7 +151,7 @@ namespace WebEmployeesDPepelyaev.Data
                     editTransaction.Rollback();
                 }
             }
-
+            _dbConnection.Close();
             //обновление сотрудника по частям (изменения должно быть только тех полей, которые указаны в запросе)
             //Employee oldEmployee = GetEmployee(model.Id);
             //using (var editTransaction = _dbConnection.BeginTransaction())
